@@ -15,6 +15,7 @@
  */
 package com.example.cupcake.ui
 
+import android.util.Log
 import androidx.lifecycle.ViewModel
 import com.example.cupcake.data.OrderUiState
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -31,6 +32,10 @@ private const val PRICE_PER_CUPCAKE = 2.00
 
 /** Additional cost for same day pickup of an order */
 private const val PRICE_FOR_SAME_DAY_PICKUP = 3.00
+
+private const val CHERRY_PRICE = 0.30
+private const val POWDERED_SUGAR_PRICE = 0.30
+private const val SPRINKLES_PRICE = 0.50
 
 /**
  * [OrderViewModel] holds information about a cupcake order in terms of quantity, flavor, and
@@ -67,6 +72,21 @@ class OrderViewModel : ViewModel() {
     }
 
     /**
+     * Set the [desiredTopping] for this order's state.
+     * Only 1 topping can be selected for the whole order.
+     */
+    fun setTopping(desiredTopping: String) {
+        val priceWithTopping = calculatePriceWithTopping(desiredTopping)
+        _uiState.update { currentState ->
+            currentState.copy(
+                topping = desiredTopping,
+                price = priceWithTopping
+            )
+        }
+    }
+
+
+    /**
      * Set the [pickupDate] for this order's state and update the price
      */
     fun setDate(pickupDate: String) {
@@ -99,6 +119,16 @@ class OrderViewModel : ViewModel() {
         }
         val formattedPrice = NumberFormat.getCurrencyInstance().format(calculatedPrice)
         return formattedPrice
+    }
+
+    /**
+     * Returns the calculated price based on the order details including topping.
+     */
+    private fun calculatePriceWithTopping(topping: String): String {
+        val basePrice = calculatePrice()
+        // Add the price for the topping
+        val priceWithTopping = basePrice.substring(1).toDouble() + 0.30 // Adding topping price
+        return NumberFormat.getCurrencyInstance().format(priceWithTopping)
     }
 
     /**
